@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flavour Cup Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #f3e5ab;
+      font-family: Arial, sans-serif;
+    }
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(#d2b48c, #8b5a2b);
+    }
+    #cup {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      width: 120px;
+      height: 140px;
+    }
+    #cup img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .bean {
+      position: absolute;
+      top: 0;
+      width: 40px;
+      height: 25px;
+    }
+    .bean img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .gift {
+      position: absolute;
+      top: 0;
+      width: 35px;
+      height: 35px;
+      background: gold;
+      border: 2px solid #fff;
+      border-radius: 50%;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #fff;
+      font-size: 24px;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px #000;
+    }
+    #popup {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameArea">
+    <div id="score">Score: 0</div>
+    <div id="cup"><img src="Untitled-1-01.png" alt="cup"></div>
+    <div id="popup"></div>
+  </div>
+  <script>
+    const gameArea = document.getElementById('gameArea');
+    const cup = document.getElementById('cup');
+    const scoreDisplay = document.getElementById('score');
+    const popup = document.getElementById('popup');
+
+    let cupX = window.innerWidth/2 - 60;
+    let score = 0;
+    let speed = 2;
+    let gameObjects = []; // مصفوفة واحدة لجميع الكائنات
+    let cupRect = { left: cupX, right: cupX + 120, top: window.innerHeight - 160, bottom: window.innerHeight - 20 };
+    let lastTime = 0;
+    let isGameRunning = true;
+
+    // تحسين للهاتف - تقليل معدل التحديث
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const targetFPS = isMobile ? 30 : 60;
+    const frameInterval = 1000 / targetFPS;
+
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'ArrowLeft') cupX -= 20;
+      if(e.key === 'ArrowRight') cupX += 20;
+      updateCupPosition();
+    });
+
+    // تحسين أحداث اللمس للموبايل
+    let isDragging = false;
+    let lastTouchTime = 0;
+    
+    gameArea.addEventListener('touchstart', (e)=>{
+      e.preventDefault();
+      isDragging = true;
+    });
+    
+    gameArea.addEventListener('touchmove', (e)=>{
+      e.preventDefault();
+      if(isDragging){
+        const now = Date.now();
+        if(now - lastTouchTime > 16) { // تحديد معدل التحديث
+          const touch = e.touches[0];
+          cupX = touch.clientX - 60;
+          updateCupPosition();
+          lastTouchTime = now;
+        }
+      }
+    });
+    
+    gameArea.addEventListener('touchend', (e)=>{
+      e.preventDefault();
+      isDragging = false;
+    });
+
+    function updateCupPosition(){
+      if(cupX < 0) cupX = 0;
+      if(cupX > window.innerWidth - 120) cupX = window.innerWidth - 120;
+      cup.style.left = cupX + 'px';
+      
+      // تحديث مستطيل الكوب
+      cupRect.left = cupX;
+      cupRect.right = cupX + 120;
+    }
+    updateCupPosition();
+
+    function spawnBean(){
+      if(gameObjects.length > 15) return; // حد أقصى للكائنات
+      
+      const bean = document.createElement('div');
+      bean.classList.add('bean');
+      const x = Math.random() * (window.innerWidth - 40);
+      bean.style.left = x + 'px';
+      bean.style.top = '0px';
+      bean.innerHTML = "<img src='Untitled-11.png' alt='bean'>";
+      gameArea.appendChild(bean);
+
+      gameObjects.push({
+        element: bean,
+        x: x,
+        y: 0,
+        type: 'bean',
+        width: 40,
+        height: 25
+      });
+    }
+
+    function spawnGift(){
+      if(gameObjects.length > 15) return;
+      
+      const gift = document.createElement('div');
+      gift.classList.add('gift');
+      const x = Math.random() * (window.innerWidth - 35);
+      gift.style.left = x + 'px';
+      gift.style.top = '0px';
+      gameArea.appendChild(gift);
+
+      gameObjects.push({
+        element: gift,
+        x: x,
+        y: 0,
+        type: 'gift',
+        width: 35,
+        height: 35
+      });
+    }
+
+    // حلقة لعبة واحدة محسنة
+    function gameLoop(currentTime) {
+      if(!isGameRunning) return;
+      
+      if(currentTime - lastTime >= frameInterval) {
+        updateGameObjects();
+        lastTime = currentTime;
+      }
+      
+      requestAnimationFrame(gameLoop);
+    }
+
+    function updateGameObjects() {
+      for(let i = gameObjects.length - 1; i >= 0; i--) {
+        const obj = gameObjects[i];
+        obj.y += speed;
+        
+        // تحديث الموقع
+        obj.element.style.transform = `translateY(${obj.y}px)`;
+        
+        // فحص الاصطدام
+        if(obj.y > window.innerHeight - 160) {
+          if(checkCollision(obj)) {
+            if(obj.type === 'bean') {
+              score += 10;
+              scoreDisplay.innerText = 'Score: ' + score;
+              if(score % 100 === 0) {
+                spawnGift();
+                speed += 0.5; // زيادة تدريجية أقل
+              }
+            } else if(obj.type === 'gift') {
+              popup.innerText = "🎁 مبروك! خصم أو مشروب مجاني!";
+              popup.style.display = 'block';
+              setTimeout(()=> popup.style.display='none', 3000);
+            }
+          }
+          
+          // إزالة الكائن
+          obj.element.remove();
+          gameObjects.splice(i, 1);
+        } else if(obj.y > window.innerHeight) {
+          // إزالة الكائنات التي خرجت من الشاشة
+          obj.element.remove();
+          gameObjects.splice(i, 1);
+        }
+      }
+    }
+
+    // فحص اصطدام محسن بدون getBoundingClientRect
+    function checkCollision(obj) {
+      return obj.x < cupRect.right && 
+             obj.x + obj.width > cupRect.left && 
+             obj.y < cupRect.bottom && 
+             obj.y + obj.height > cupRect.top;
+    }
+
+    // بدء اللعبة
+    requestAnimationFrame(gameLoop);
+    setInterval(spawnBean, 1500);
+  </script>
+</body>
+</html>
