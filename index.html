@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flavour - Bean Catcher Coffee Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Game UI -->
+        <div class="ui-overlay">
+            <div class="top-ui">
+                <div class="score-display">
+                    <span class="score-label">Score:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="hearts-display" id="hearts">
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-label">Boss Bean Progress</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="bossProgress"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+        <!-- Game Over Screen -->
+        <div class="game-over-screen" id="gameOverScreen" style="display: none;">
+            <div class="game-over-content">
+                <h2>Game Over!</h2>
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <button id="restartBtn" class="restart-btn">Play Again</button>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <div class="start-content">
+                <h1>Flavour</h1>
+                <p class="subtitle">Bean Catcher - Cozy Coffee Shop Adventure</p>
+                <div class="instructions">
+                    <p>🫘 Catch falling coffee beans in your cup</p>
+                    <p>❤️ Don't let beans fall - you have 3 hearts</p>
+                    <p>⭐ Catch special boss beans for bonuses</p>
+                    <p>📱 Use arrow keys or touch to move</p>
+                </div>
+                <button id="startBtn" class="start-btn">Start Brewing!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="catchSound" preload="auto">
+        <source src="sounds/catch.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="missSound" preload="auto">
+        <source src="sounds/miss.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bossSound" preload="auto">
+        <source src="sounds/boss.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bgMusic" preload="auto" loop>
+        <source src="sounds/background.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="game.js"></script>
+</body>
+</html>
