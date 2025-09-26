@@ -189,6 +189,15 @@ body {
     transform: translateY(0);
 }
 
+/* Boss Counter */
+.boss-counter {
+    text-align: center;
+    margin-top: 5px;
+    color: #F5E6D3;
+    font-size: 11px;
+    font-weight: 400;
+}
+
 /* Game Over Screen */
 .game-over-screen {
     position: absolute;
@@ -222,6 +231,113 @@ body {
     font-size: 18px;
     margin-bottom: 30px;
     font-weight: 400;
+}
+
+/* Win Screen */
+.win-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.95), rgba(255, 165, 0, 0.95));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.win-content {
+    text-align: center;
+    color: #8B4513;
+    padding: 30px;
+    background: rgba(245, 230, 211, 0.9);
+    border-radius: 20px;
+    border: 3px solid #FFD700;
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+}
+
+.win-content h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: #FF8C00;
+}
+
+.win-message {
+    font-size: 16px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: #8B4513;
+}
+
+.win-stats {
+    background: rgba(139, 69, 19, 0.1);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(139, 69, 19, 0.2);
+}
+
+.win-stats p {
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.discount-badge {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+    border: 2px solid #FF8C00;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+.discount-text {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: #8B4513;
+    margin-bottom: 2px;
+}
+
+.discount-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: #8B4513;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.win-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.share-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Comfortaa', cursive;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    pointer-events: all;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+    background: linear-gradient(135deg, #45a049, #4CAF50);
 }
 
 /* Animations */
