@@ -32,7 +32,9 @@ const CONFIG = {
     game: {
         maxHearts: 3,
         pointsPerBean: 10,
-        pointsPerBossBean: 100
+        pointsPerBossBean: 100,
+        bossBeansToWin: 10,
+        winDiscount: 15
     }
 };
 
@@ -52,6 +54,8 @@ class GameState {
         this.beansCollected = 0;
         this.spawnTimer = 0;
         this.currentSpawnInterval = CONFIG.bean.spawnInterval;
+        this.bossBeansCollected = 0;
+        this.gameWon = false;
     }
 }
 
@@ -483,9 +487,13 @@ class Game {
     setupUI() {
         const startBtn = document.getElementById('startBtn');
         const restartBtn = document.getElementById('restartBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const shareBtn = document.getElementById('shareBtn');
 
         startBtn.addEventListener('click', () => this.startGame());
         restartBtn.addEventListener('click', () => this.restartGame());
+        playAgainBtn.addEventListener('click', () => this.restartGame());
+        shareBtn.addEventListener('click', () => this.shareScore());
     }
 
     startGame() {
@@ -497,6 +505,7 @@ class Game {
 
     restartGame() {
         document.getElementById('gameOverScreen').style.display = 'none';
+        document.getElementById('winScreen').style.display = 'none';
         this.state.reset();
         this.beans = [];
         this.particles = new ParticleSystem();
@@ -571,8 +580,15 @@ class Game {
     catchBean(bean, index) {
         if (bean.isBoss) {
             this.state.score += CONFIG.game.pointsPerBossBean;
+            this.state.bossBeansCollected++;
             this.applyBossBonus();
             this.playSound('bossSound');
+            
+            // Check for win condition
+            if (this.state.bossBeansCollected >= CONFIG.game.bossBeansToWin) {
+                this.gameWin();
+                return;
+            }
         } else {
             this.state.score += CONFIG.game.pointsPerBean;
             this.state.beansCollected++;
@@ -624,6 +640,75 @@ class Game {
         document.getElementById('gameOverScreen').style.display = 'flex';
     }
 
+    gameWin() {
+        this.state.gameRunning = false;
+        this.state.gameWon = true;
+        document.getElementById('winScore').textContent = this.state.score;
+        document.getElementById('winBossBeans').textContent = this.state.bossBeansCollected;
+        document.getElementById('winScreen').style.display = 'flex';
+        this.playSound('bossSound'); // Victory sound
+    }
+
+    shareScore() {
+        const shareText = `🎉 لقد فزت في لعبة Flavour! 
+☕ النتيجة: ${this.state.score} نقطة
+⭐ حبوب البوس: ${this.state.bossBeansCollected}/10
+🎁 حصلت على خصم 15%!
+
+العب الآن: ${window.location.href}`;
+
+        if (navigator.share) {
+            // Use native sharing on mobile
+            navigator.share({
+                title: 'Flavour - Bean Catcher Game',
+                text: shareText,
+                url: window.location.href
+            }).catch(() => {
+                this.fallbackShare(shareText);
+            });
+        } else {
+            this.fallbackShare(shareText);
+        }
+    }
+
+    fallbackShare(text) {
+        // Copy to clipboard as fallback
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('تم نسخ النتيجة! يمكنك مشاركتها الآن 📋');
+            }).catch(() => {
+                this.showShareModal(text);
+            });
+        } else {
+            this.showShareModal(text);
+        }
+    }
+
+    showShareModal(text) {
+        // Create a simple modal for sharing
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); display: flex; align-items: center;
+            justify-content: center; z-index: 1000; padding: 20px;
+        `;
+        
+        const content = document.createElement('div');
+        content.style.cssText = `
+            background: white; padding: 20px; border-radius: 10px;
+            max-width: 400px; text-align: center; font-family: 'Comfortaa', cursive;
+        `;
+        
+        content.innerHTML = `
+            <h3>مشاركة النتيجة</h3>
+            <textarea readonly style="width: 100%; height: 120px; margin: 10px 0; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">${text}</textarea>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: #FFD700; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">إغلاق</button>
+        `;
+        
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+    }
+
     updateUI() {
         document.getElementById('score').textContent = this.state.score;
         
@@ -644,6 +729,9 @@ class Game {
         const progressFill = document.getElementById('bossProgress');
         const progressPercent = (this.state.bossProgress / CONFIG.bossBean.progressThreshold) * 100;
         progressFill.style.width = `${progressPercent}%`;
+
+        // Update boss counter
+        document.getElementById('bossCounter').textContent = this.state.bossBeansCollected;
     }
 
     playSound(soundId) {
