@@ -9,7 +9,7 @@ const CONFIG = {
         height: 60,
         speed: 5,
         startX: 160,
-        startY: 480
+        startY: 500
     },
     bean: {
         width: 20,
@@ -439,6 +439,9 @@ class Game {
         
         this.setupEventListeners();
         this.setupUI();
+        // Initialize daily attempts tracking UI
+        this.ensureAttemptsInitialized();
+        this.updateAttemptsUI();
         
         // Start game loop
         this.gameLoop();
@@ -489,11 +492,117 @@ class Game {
         const restartBtn = document.getElementById('restartBtn');
         const playAgainBtn = document.getElementById('playAgainBtn');
         const shareBtn = document.getElementById('shareBtn');
+        const facebookFollowBtn = document.getElementById('facebookFollowBtn');
+        const tiktokFollowBtn = document.getElementById('tiktokFollowBtn');
 
-        startBtn.addEventListener('click', () => this.startGame());
-        restartBtn.addEventListener('click', () => this.restartGame());
-        playAgainBtn.addEventListener('click', () => this.restartGame());
+        startBtn.addEventListener('click', () => this.tryStartNewRun('start'));
+        restartBtn.addEventListener('click', () => this.tryStartNewRun('restart'));
+        playAgainBtn.addEventListener('click', () => this.tryStartNewRun('restart'));
         shareBtn.addEventListener('click', () => this.shareScore());
+        
+        // Social media follow buttons
+        if (facebookFollowBtn) {
+            facebookFollowBtn.addEventListener('click', () => this.handleSocialFollow('facebook'));
+        }
+        if (tiktokFollowBtn) {
+            tiktokFollowBtn.addEventListener('click', () => this.handleSocialFollow('tiktok'));
+        }
+    }
+
+    // ===== Daily Attempts (3/day) =====
+    getTodayKey() {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    ensureAttemptsInitialized() {
+        const today = this.getTodayKey();
+        const savedDate = localStorage.getItem('flavour_attempts_date');
+        if (savedDate !== today) {
+            localStorage.setItem('flavour_attempts_date', today);
+            localStorage.setItem('flavour_attempts_count', '0');
+        } else if (localStorage.getItem('flavour_attempts_count') === null) {
+            localStorage.setItem('flavour_attempts_count', '0');
+        }
+    }
+
+    getAttemptsCount() {
+        this.ensureAttemptsInitialized();
+        const val = parseInt(localStorage.getItem('flavour_attempts_count') || '0', 10);
+        return isNaN(val) ? 0 : val;
+    }
+
+    remainingAttempts() {
+        const baseAttempts = 3;
+        const bonusAttempts = this.getBonusAttempts();
+        const totalAllowed = baseAttempts + bonusAttempts;
+        return Math.max(0, totalAllowed - this.getAttemptsCount());
+    }
+
+    canPlay() {
+        return this.remainingAttempts() > 0;
+    }
+
+    incrementAttempt() {
+        this.ensureAttemptsInitialized();
+        const current = this.getAttemptsCount();
+        const maxAttempts = 3 + this.getBonusAttempts();
+        localStorage.setItem('flavour_attempts_count', String(Math.min(maxAttempts, current + 1)));
+        this.updateAttemptsUI();
+    }
+
+    updateAttemptsUI() {
+        const el = document.getElementById('attemptsInfo');
+        const startBtn = document.getElementById('startBtn');
+        const bonusAttempts = this.getBonusAttempts();
+        const totalAttempts = 3 + bonusAttempts;
+        
+        if (el) {
+            let text = `المحاولات المتبقية اليوم: ${this.remainingAttempts()} من ${totalAttempts}`;
+            if (bonusAttempts > 0) {
+                text += ` (${bonusAttempts} محاولة إضافية)`;
+            }
+            el.textContent = text;
+        }
+        if (startBtn) {
+            const can = this.canPlay();
+            startBtn.disabled = !can;
+            startBtn.textContent = can ? 'Start Brewing!' : 'No attempts left today';
+        }
+    }
+
+    showNoAttemptsMessage() {
+        const bonusSection = document.getElementById('bonusAttemptsSection');
+        if (bonusSection && this.canEarnBonusAttempts()) {
+            // Don't show the alert, instead show the bonus section
+            return;
+        }
+        const totalAttempts = 3 + this.getBonusAttempts();
+        alert(`لقد استخدمت كل محاولاتك اليوم (${totalAttempts}). الرجاء المحاولة غدًا.`);
+    }
+
+    tryStartNewRun(mode) {
+        // mode: 'start' | 'restart'
+        if (!this.canPlay()) {
+            this.showNoAttemptsMessage();
+            this.updateAttemptsUI();
+            return;
+        }
+
+        // Consume an attempt when a new run starts
+        this.incrementAttempt();
+
+        if (mode === 'restart') {
+            // Ensure previous overlays are hidden and state is reset
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('winScreen').style.display = 'none';
+            this.state.reset();
+            this.beans = [];
+            this.particles = new ParticleSystem();
+            this.player = new Player(CONFIG.player.startX, CONFIG.player.startY);
+            this.startGame();
+        } else {
+            this.startGame();
+        }
     }
 
     startGame() {
@@ -504,13 +613,8 @@ class Game {
     }
 
     restartGame() {
-        document.getElementById('gameOverScreen').style.display = 'none';
-        document.getElementById('winScreen').style.display = 'none';
-        this.state.reset();
-        this.beans = [];
-        this.particles = new ParticleSystem();
-        this.player = new Player(CONFIG.player.startX, CONFIG.player.startY);
-        this.startGame();
+        // kept for backward compatibility if called somewhere else
+        this.tryStartNewRun('restart');
     }
 
     spawnBean() {
@@ -638,6 +742,10 @@ class Game {
         this.state.gameRunning = false;
         document.getElementById('finalScore').textContent = this.state.score;
         document.getElementById('gameOverScreen').style.display = 'flex';
+        
+        // Show bonus attempts section if user can earn more attempts
+        this.updateBonusAttemptsSection();
+        this.updateAttemptsUI();
     }
 
     gameWin() {
@@ -647,6 +755,7 @@ class Game {
         document.getElementById('winBossBeans').textContent = this.state.bossBeansCollected;
         document.getElementById('winScreen').style.display = 'flex';
         this.playSound('bossSound'); // Victory sound
+        this.updateAttemptsUI();
     }
 
     shareScore() {
@@ -739,6 +848,108 @@ class Game {
         if (sound) {
             sound.currentTime = 0;
             sound.play().catch(() => {}); // Ignore audio play errors
+        }
+    }
+
+    // ===== Social Media Follow & Bonus Attempts =====
+    getBonusAttempts() {
+        const today = this.getTodayKey();
+        const savedDate = localStorage.getItem('flavour_bonus_date');
+        if (savedDate !== today) {
+            // Reset bonus attempts for new day
+            localStorage.setItem('flavour_bonus_date', today);
+            localStorage.removeItem('flavour_facebook_followed');
+            localStorage.removeItem('flavour_tiktok_followed');
+            return 0;
+        }
+        
+        let bonus = 0;
+        if (localStorage.getItem('flavour_facebook_followed') === 'true') bonus++;
+        if (localStorage.getItem('flavour_tiktok_followed') === 'true') bonus++;
+        return bonus;
+    }
+
+    canEarnBonusAttempts() {
+        return !this.hasFollowedFacebook() || !this.hasFollowedTikTok();
+    }
+
+    hasFollowedFacebook() {
+        return localStorage.getItem('flavour_facebook_followed') === 'true';
+    }
+
+    hasFollowedTikTok() {
+        return localStorage.getItem('flavour_tiktok_followed') === 'true';
+    }
+
+    updateBonusAttemptsSection() {
+        const bonusSection = document.getElementById('bonusAttemptsSection');
+        const facebookBtn = document.getElementById('facebookFollowBtn');
+        const tiktokBtn = document.getElementById('tiktokFollowBtn');
+        const bonusStatus = document.getElementById('bonusStatus');
+        
+        if (!bonusSection) return;
+
+        // Show section only if user has no attempts left and can earn bonus attempts
+        const shouldShow = !this.canPlay() && this.canEarnBonusAttempts();
+        bonusSection.style.display = shouldShow ? 'block' : 'none';
+        
+        if (!shouldShow) return;
+
+        // Update button states
+        if (facebookBtn) {
+            const followed = this.hasFollowedFacebook();
+            facebookBtn.disabled = followed;
+            facebookBtn.textContent = followed ? '✓ تم المتابعة على فيسبوك' : '📘 تابع على فيسبوك (+1 محاولة)';
+        }
+
+        if (tiktokBtn) {
+            const followed = this.hasFollowedTikTok();
+            tiktokBtn.disabled = followed;
+            tiktokBtn.textContent = followed ? '✓ تم المتابعة على تيكتوك' : '🎵 تابع على تيكتوك (+1 محاولة)';
+        }
+
+        // Update status message
+        if (bonusStatus) {
+            const bonusEarned = this.getBonusAttempts();
+            if (bonusEarned > 0) {
+                bonusStatus.textContent = `🎉 لقد حصلت على ${bonusEarned} محاولة إضافية!`;
+                bonusStatus.style.color = '#4CAF50';
+            } else {
+                bonusStatus.textContent = '';
+            }
+        }
+    }
+
+    handleSocialFollow(platform) {
+        const urls = {
+            facebook: 'https://www.facebook.com/profile.php?id=61551816943530&locale=ar_AR',
+            tiktok: 'https://www.tiktok.com/@flavourcafe?is_from_webapp=1&sender_device=pc'
+        };
+        
+        const confirmMessage = platform === 'facebook' 
+            ? 'سيتم فتح صفحة فيسبوك للمتابعة. هل تريد المتابعة؟'
+            : 'سيتم فتح صفحة تيكتوك للمتابعة. هل تريد المتابعة؟';
+        
+        if (confirm(confirmMessage)) {
+            // Open social media page in new tab
+            window.open(urls[platform], '_blank');
+            
+            // Mark as followed after a short delay (assuming user will follow)
+            setTimeout(() => {
+                const storageKey = `flavour_${platform}_followed`;
+                localStorage.setItem(storageKey, 'true');
+                
+                // Update UI
+                this.updateBonusAttemptsSection();
+                this.updateAttemptsUI();
+                
+                // Show success message
+                const bonusStatus = document.getElementById('bonusStatus');
+                if (bonusStatus) {
+                    bonusStatus.textContent = '🎉 تم! حصلت على محاولة إضافية!';
+                    bonusStatus.style.color = '#4CAF50';
+                }
+            }, 2000); // 2 second delay to allow page to open
         }
     }
 
