@@ -41,6 +41,22 @@
             <div class="game-over-content">
                 <h2>Game Over!</h2>
                 <p>Final Score: <span id="finalScore">0</span></p>
+                
+                <!-- Social Media Follow Section -->
+                <div class="bonus-attempts-section" id="bonusAttemptsSection" style="display: none;">
+                    <h3>🎁 احصل على محاولات إضافية!</h3>
+                    <p class="bonus-text">تابعنا على وسائل التواصل واحصل على محاولة إضافية لكل منصة</p>
+                    <div class="social-buttons">
+                        <button id="facebookFollowBtn" class="social-btn facebook-btn" data-platform="facebook">
+                            📘 تابع على فيسبوك (+1 محاولة)
+                        </button>
+                        <button id="tiktokFollowBtn" class="social-btn tiktok-btn" data-platform="tiktok">
+                            🎵 تابع على تيكتوك (+1 محاولة)
+                        </button>
+                    </div>
+                    <p class="bonus-status" id="bonusStatus"></p>
+                </div>
+                
                 <button id="restartBtn" class="restart-btn">Play Again</button>
             </div>
         </div>
@@ -76,6 +92,7 @@
                     <p>⭐ Catch 10 boss beans to WIN and get 15% discount!</p>
                     <p>📱 Use arrow keys or touch to move</p>
                 </div>
+                <p id="attemptsInfo" class="attempts-info">المحاولات المتبقية اليوم: 3 من 3</p>
                 <button id="startBtn" class="start-btn">Start Brewing!</button>
             </div>
         </div>
