@@ -1,117 +1,0 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flavour - Bean Catcher Coffee Game</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="game-container">
-        <!-- Game UI -->
-        <div class="ui-overlay">
-            <div class="top-ui">
-                <div class="score-display">
-                    <span class="score-label">Score:</span>
-                    <span id="score">0</span>
-                </div>
-                <div class="hearts-display" id="hearts">
-                    <span class="heart">❤️</span>
-                    <span class="heart">❤️</span>
-                    <span class="heart">❤️</span>
-                </div>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-label">Boss Bean Progress</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="bossProgress"></div>
-                </div>
-                <div class="boss-counter">
-                    <span>⭐ Boss Beans: <span id="bossCounter">0</span>/10</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Game Canvas -->
-        <canvas id="gameCanvas" width="400" height="600"></canvas>
-
-        <!-- Game Over Screen -->
-        <div class="game-over-screen" id="gameOverScreen" style="display: none;">
-            <div class="game-over-content">
-                <h2>Game Over!</h2>
-                <p>Final Score: <span id="finalScore">0</span></p>
-                
-                <!-- Social Media Follow Section -->
-                <div class="bonus-attempts-section" id="bonusAttemptsSection" style="display: none;">
-                    <h3>🎁 احصل على محاولات إضافية!</h3>
-                    <p class="bonus-text">تابعنا على وسائل التواصل واحصل على محاولة إضافية لكل منصة</p>
-                    <div class="social-buttons">
-                        <button id="facebookFollowBtn" class="social-btn facebook-btn" data-platform="facebook">
-                            📘 تابع على فيسبوك (+1 محاولة)
-                        </button>
-                        <button id="tiktokFollowBtn" class="social-btn tiktok-btn" data-platform="tiktok">
-                            🎵 تابع على تيكتوك (+1 محاولة)
-                        </button>
-                    </div>
-                    <p class="bonus-status" id="bonusStatus"></p>
-                </div>
-                
-                <button id="restartBtn" class="restart-btn">Play Again</button>
-            </div>
-        </div>
-
-        <!-- Win Screen -->
-        <div class="win-screen" id="winScreen" style="display: none;">
-            <div class="win-content">
-                <h2>🎉 تهانينا! 🎉</h2>
-                <p class="win-message">لقد جمعت 10 حبوب بوس!</p>
-                <div class="win-stats">
-                    <p>النتيجة النهائية: <span id="winScore">0</span></p>
-                    <p>حبوب البوس: <span id="winBossBeans">10</span>/10</p>
-                    <div class="discount-badge">
-                        <span class="discount-text">🎁 مكافأة الفوز</span>
-                        <span class="discount-value">خصم 15%</span>
-                    </div>
-                </div>
-                <div class="win-actions">
-                    <button id="shareBtn" class="share-btn">📤 مشاركة النتيجة</button>
-                    <button id="playAgainBtn" class="restart-btn">🎮 العب مرة أخرى</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Start Screen -->
-        <div class="start-screen" id="startScreen">
-            <div class="start-content">
-                <h1>Flavour</h1>
-                <p class="subtitle">Bean Catcher - Cozy Coffee Shop Adventure</p>
-                <div class="instructions">
-                    <p>🫘 Catch falling coffee beans in your cup</p>
-                    <p>❤️ Don't let beans fall - you have 3 hearts</p>
-                    <p>⭐ Catch 10 boss beans to WIN and get 15% discount!</p>
-                    <p>📱 Use arrow keys or touch to move</p>
-                </div>
-                <p id="attemptsInfo" class="attempts-info">المحاولات المتبقية اليوم: 3 من 3</p>
-                <button id="startBtn" class="start-btn">Start Brewing!</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Audio Elements -->
-    <audio id="catchSound" preload="auto">
-        <source src="sounds/catch.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="missSound" preload="auto">
-        <source src="sounds/miss.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="bossSound" preload="auto">
-        <source src="sounds/boss.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="bgMusic" preload="auto" loop>
-        <source src="sounds/background.mp3" type="audio/mpeg">
-    </audio>
-
-    <script src="game.js"></script>
-</body>
-</html>
